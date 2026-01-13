@@ -1,0 +1,578 @@
+/* App.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.App {
+    max-width: 900px;
+    width: 100%;
+    outline: none;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 25px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 8px;
+}
+
+.subtitle {
+    font-style: italic;
+    color: #c5cae9;
+    font-size: 1.1rem;
+}
+
+.game-container {
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    overflow: hidden;
+}
+
+.game-area {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    border-radius: 15px;
+    overflow: hidden;
+    border: 4px solid #5d4037;
+    margin-bottom: 20px;
+}
+
+/* Himmel */
+.sky {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60%;
+    background: linear-gradient(to bottom, #87CEEB 0%, #B3E5FC 100%);
+    z-index: 1;
+}
+
+.sun {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    width: 70px;
+    height: 70px;
+    background: radial-gradient(circle, #FFEB3B, #FF9800);
+    border-radius: 50%;
+    box-shadow: 0 0 40px #FF9800;
+}
+
+.cloud {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.9;
+}
+
+.cloud1 {
+    width: 120px;
+    height: 50px;
+    top: 40px;
+    left: 10%;
+    animation: cloudMove 40s linear infinite;
+}
+
+.cloud2 {
+    width: 90px;
+    height: 40px;
+    top: 80px;
+    left: 70%;
+    animation: cloudMove 35s linear infinite reverse;
+}
+
+@keyframes cloudMove {
+    0% { transform: translateX(-100px); }
+    100% { transform: translateX(900px); }
+}
+
+/* Berge */
+.mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 70%;
+    z-index: 2;
+}
+
+.mountain-back {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(to top, #78909c, #546e7a);
+    clip-path: polygon(0% 100%, 25% 40%, 50% 60%, 75% 30%, 100% 100%);
+}
+
+.mountain-middle {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 250px;
+    background: linear-gradient(to top, #8d6e63, #6d4c41);
+    clip-path: polygon(0% 100%, 15% 50%, 40% 70%, 60% 40%, 85% 60%, 100% 100%);
+}
+
+.mountain-front {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 300px;
+    background: linear-gradient(to top, #a1887f, #8d6e63);
+    clip-path: polygon(0% 100%, 10% 60%, 30% 80%, 50% 50%, 70% 75%, 90% 45%, 100% 100%);
+    z-index: 3;
+}
+
+/* Spielbereich */
+.play-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+}
+
+/* Niemand Container */
+.niemand-container {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    transition: all 0.3s ease;
+}
+
+/* Spieler Container */
+.player-container {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    transition: left 0.1s linear, top 0.1s linear;
+}
+
+.player-figure {
+    position: relative;
+}
+
+/* Sprechblase */
+.speech-bubble {
+    position: absolute;
+    bottom: 70px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    border-radius: 12px;
+    padding: 10px 15px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    min-width: 90px;
+    z-index: 20;
+    animation: bubbleAppear 0.3s ease;
+}
+
+.bubble-content {
+    text-align: center;
+}
+
+.empty-speech {
+    color: #78909c;
+    font-size: 22px;
+    letter-spacing: 3px;
+    animation: blinkEmpty 1.5s infinite;
+}
+
+@keyframes blinkEmpty {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.7; }
+}
+
+.bubble-tail {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid white;
+}
+
+@keyframes bubbleAppear {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* Gipfel-Krone */
+.summit-crown {
+    position: absolute;
+    top: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 32px;
+    animation: crownFloat 2s infinite ease-in-out;
+}
+
+@keyframes crownFloat {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* Gipfel-Flagge */
+.summit-flag {
+    position: absolute;
+    font-size: 36px;
+    z-index: 6;
+    animation: flagWave 3s infinite ease-in-out;
+}
+
+@keyframes flagWave {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}
+
+/* Gipfel-Overlay */
+.summit-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    animation: fadeIn 0.5s ease;
+}
+
+.summit-message {
+    background: linear-gradient(135deg, #FFF9C4, #FFEB3B);
+    padding: 35px;
+    border-radius: 20px;
+    text-align: center;
+    border: 4px solid #FBC02D;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    max-width: 85%;
+}
+
+.summit-message h2 {
+    color: #5D4037;
+    margin-bottom: 15px;
+    font-size: 2rem;
+}
+
+.summit-message p {
+    color: #6D4C41;
+    font-size: 1.2rem;
+    margin-bottom: 25px;
+    font-style: italic;
+}
+
+.restart-btn {
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    background: linear-gradient(to bottom, #4CAF50, #388E3C);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.restart-btn:hover {
+    background: linear-gradient(to bottom, #388E3C, #2E7D32);
+    transform: scale(1.05);
+}
+
+/* Game Info */
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+}
+
+.stats {
+    display: flex;
+    gap: 25px;
+}
+
+.stat {
+    text-align: center;
+    min-width: 80px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #616161;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #283593;
+}
+
+.controls-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.control-key {
+    background: #455a64;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Schreien-Sektion */
+.scream-section {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    border-radius: 12px;
+    padding: 18px;
+    margin: 20px 0;
+    border: 2px solid #dee2e6;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.scream-section:hover {
+    background: linear-gradient(to right, #e9ecef, #dee2e6);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.scream-quote {
+    text-align: center;
+}
+
+.quote-mark {
+    font-size: 1.8rem;
+    color: #757575;
+    font-family: Georgia, serif;
+    vertical-align: middle;
+}
+
+.quote-text {
+    font-size: 1.3rem;
+    color: #37474f;
+    font-style: italic;
+    margin: 0 8px;
+    display: inline-block;
+}
+
+.click-hint {
+    font-size: 0.85rem;
+    color: #78909c;
+    margin-top: 8px;
+    opacity: 0.8;
+}
+
+/* Kafka Display */
+.kafka-display {
+    background: #F1F8E9;
+    border-left: 5px solid #7CB342;
+    padding: 18px;
+    margin: 20px 0;
+    border-radius: 0 12px 12px 0;
+}
+
+.kafka-text {
+    font-size: 1.2rem;
+    font-style: italic;
+    color: #33691E;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    min-height: 55px;
+}
+
+.text-author {
+    text-align: right;
+    color: #558B2F;
+    font-weight: bold;
+    font-size: 0.95rem;
+}
+
+/* Anleitung */
+.instructions {
+    background: #E3F2FD;
+    padding: 15px;
+    border-radius: 12px;
+    color: #1565C0;
+    border-left: 5px solid #2196F3;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.instructions strong {
+    color: #0D47A1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .game-area {
+        height: 400px;
+    }
+
+    .game-info {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .stats {
+        width: 100%;
+        justify-content: space-around;
+    }
+
+    .scream-section {
+        padding: 15px;
+    }
+
+    .quote-text {
+        font-size: 1.1rem;
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* App.css - Neue Styles hinzufügen */
+
+/* Text-Anzeige oben in der Mitte */
+.text-display-top {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 7;
+    width: 80%;
+    max-width: 600px;
+    animation: slideDown 0.5s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -20px);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.text-bubble {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 15px 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    border: 3px solid #7CB342;
+    text-align: center;
+    backdrop-filter: blur(5px);
+}
+
+.text-content {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #1b5e20;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    font-weight: 500;
+}
+
+.text-step {
+    font-size: 0.9rem;
+    color: #558b2f;
+    font-weight: bold;
+    opacity: 0.8;
+}
+
+/* Anpassung der Berge, damit Text sichtbar bleibt */
+.mountains {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 65%; /* Etwas reduziert */
+    z-index: 2;
+}
+
+/* Anpassung des Spielbereichs */
+.play-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+}
+
+/* Responsive Anpassungen für Text */
+@media (max-width: 768px) {
+    .text-display-top {
+        width: 90%;
+        top: 10px;
+    }
+
+    .text-bubble {
+        padding: 12px 15px;
+    }
+
+    .text-content {
+        font-size: 0.9rem;
+    }
+
+    .text-step {
+        font-size: 0.8rem;
+    }
+
+    .game-area {
+        height: 450px;
+    }
+}
+
+/* Rest bleibt gleich wie vorher */
