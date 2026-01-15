@@ -44,7 +44,7 @@ const NiemandSVG = ({ suitColor }: { suitColor: string }) => (
 
 function App() {
     const [playerX, setPlayerX] = useState<number>(10);
-    const [playerY, setPlayerY] = useState<number>(350);
+    const [playerY, setPlayerY] = useState<number>(480); // WEITER UNTEN: 480 statt 420
     const [height, setHeight] = useState<number>(0);
     const [niemande, setNiemande] = useState<Niemand[]>([]);
     const [showSpeechBubble, setShowSpeechBubble] = useState<boolean>(false);
@@ -56,39 +56,66 @@ function App() {
     const lastStepTime = useRef<number>(0);
 
     const kafkaText = [
-        "Ich weiß nicht, ich weiß ja nicht",
         "Wenn niemand kommt, dann kommt eben niemand.",
-        "Ich habe niemandem etwas Böses getan...",
+        "Ich habe niemandem etwas Böses getan",
+        "niemand hat mir etwas Böses getan",
         "niemand aber will mir helfen.",
         "Lauter niemand.",
-        "Wie sich diese Niemand aneinander drängen...",
-        "Wir gehen so lala, der Wind fährt durch die Lücken...",
+        "Aber so ist es doch nicht.",
+        "Nur daß mir niemand hilft",
+        "sonst wäre lauter niemand hübsch",
+        "Ich würde ganz gern — warum denn nicht",
+        "einen Ausflug mit einer Gesellschaft von lauter Niemand\n" +
+        "machen",
+        "Natürlich ins Gebirge, wohin denn sonst?",
+        "Wie sich diese Niemand aneinander drängen",
+        "diese vielen quer gestreckten und eingehängten Arme",
+        "diese vielen Füße, durch winzige Schritte getrennt!",
+        "Versteht sich, daß alle in Frack sind.",
+        "Wir gehen so lala, der Wind fährt durch die Lücken",
+        "Die Hälse werden im Gebirge frei!",
         "Es ist ein Wunder, daß wir nicht singen.",
-        "Allein am Gipfel. Die Niemande waren nur Begleiter, keine Gefährten."
     ];
 
-    // Steuerung
+    const SUMMIT_X = 50;
+    const SUMMIT_Y = 180;
+    const GROUND_LEVEL = 500; // Boden nach unten verschoben
+
+    // Steuerung mit verbessertem Scroll-Prevention
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                keysPressed.current.add(e.key);
+            const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
+
+            if (arrowKeys.includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // Nur aktiv, wenn Spiel läuft
+                if (gameActive && !reachedSummit) {
+                    keysPressed.current.add(e.key);
+                }
             }
         };
 
         const handleKeyUp = (e: KeyboardEvent) => {
-            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+            const arrowKeys = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '];
+
+            if (arrowKeys.includes(e.key)) {
+                e.preventDefault();
+                e.stopPropagation();
                 keysPressed.current.delete(e.key);
             }
         };
 
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
+        // Event-Listener mit capture phase für bessere Kontrolle
+        window.addEventListener('keydown', handleKeyDown, { capture: true });
+        window.addEventListener('keyup', handleKeyUp, { capture: true });
 
         return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
+            window.removeEventListener('keydown', handleKeyDown, { capture: true });
+            window.removeEventListener('keyup', handleKeyUp, { capture: true });
         };
-    }, []);
+    }, [gameActive, reachedSummit]);
 
     // Spiel-Loop
     useEffect(() => {
@@ -101,11 +128,11 @@ function App() {
             let newY = playerY;
 
             if (keysPressed.current.has('ArrowUp')) {
-                newY -= 2;
+                newY -= 4;
                 moved = true;
             }
             if (keysPressed.current.has('ArrowDown')) {
-                newY += 2;
+                newY += 4;
                 moved = true;
             }
             if (keysPressed.current.has('ArrowLeft')) {
@@ -117,76 +144,82 @@ function App() {
                 moved = true;
             }
 
-            // Wenn Bewegung stattgefunden hat und genug Zeit vergangen ist
             if (moved && now - lastStepTime.current > 100) {
                 setSteps(prev => prev + 1);
                 lastStepTime.current = now;
 
-                // Bei jedem Schritt: Textindex erhöhen (wenn nicht am Ende)
-                if (textIndex < kafkaText.length - 1) {
-                    setTextIndex(prev => prev + 1);
-                }
+                setTextIndex(prev => (prev + 1) % kafkaText.length);
 
-                // Bei jedem Schritt: Einen neuen Niemand hinzufügen
-                if (!reachedSummit) {
-                    const newNiemand: Niemand = {
-                        id: Date.now() + Math.random(),
-                        x: playerX + (Math.random() * 60 - 30), // In der Nähe des Spielers
-                        y: playerY + (Math.random() * 40 - 20),
-                        suitColor: getRandomSuitColor(),
-                        speed: 0.2 + Math.random() * 0.4,
-                    };
-                    setNiemande(prev => [...prev, newNiemand]);
+                // NIEMANDE SPAWNEN NUR BEI JEDEM ZWEITEN SCHRITT
+                if (!reachedSummit && steps < 120) { // Maximal 120 Niemande
+                    // Nur bei ungerader Schrittanzahl spawnen (jeder 2. Schritt)
+                    if (steps % 2 === 0) {
+                        // Zufällige Position sehr nah am Spieler
+                        const spawnDirection = Math.random() > 0.5 ? 1 : -1; // Links oder rechts
+                        const offsetX = spawnDirection * (5 + Math.random() * 15); // Sehr nah: 5-20 Pixel seitlich
+                        const offsetY = 5 + Math.random() * 10; // Sehr nah: 5-15 Pixel tiefer
+
+                        const newNiemand: Niemand = {
+                            id: Date.now() + Math.random(),
+                            x: playerX + offsetX, // Sehr nah am Spieler
+                            y: playerY + offsetY, // Direkt hinter/neben dem Spieler
+                            suitColor: getRandomSuitColor(),
+                            speed: 0.3 + Math.random() * 0.3, // Etwas schneller
+                        };
+                        setNiemande(prev => [...prev.slice(-60), newNiemand]); // Nur die letzten 60 behalten
+                    }
                 }
             }
 
+            // Grenzen mit neuem Bodenlevel
             newX = Math.max(5, Math.min(95, newX));
-            newY = Math.max(100, Math.min(380, newY));
+            newY = Math.max(SUMMIT_Y, Math.min(GROUND_LEVEL, newY)); // Neuer Boden
 
-            const currentHeight = 400 - newY;
-            setHeight(Math.max(0, currentHeight));
+            const currentHeight = GROUND_LEVEL - newY;
+            setHeight(Math.max(0, Math.round(currentHeight / 2.5))); // Angepasste Höhenberechnung
 
             setPlayerX(newX);
             setPlayerY(newY);
 
             // Gipfel erreicht?
-            if (newY <= 120 && !reachedSummit) {
+            const distanceToSummit = Math.sqrt(
+                Math.pow(newX - SUMMIT_X, 2) + Math.pow(newY - SUMMIT_Y, 2)
+            );
+
+            if (distanceToSummit < 25 && !reachedSummit && newY <= SUMMIT_Y + 30) {
                 setReachedSummit(true);
-                // Setze den letzten Text (Gipfeltext)
                 setTextIndex(kafkaText.length - 1);
-                setTimeout(() => {
-                    setNiemande([]);
-                }, 500);
+                setPlayerX(SUMMIT_X);
+                setPlayerY(SUMMIT_Y);
+
+                // Niemande verschwinden lassen
+                setNiemande([]);
             }
 
-            // Niemande folgen dem Spieler
+            // Niemande folgen dem Spieler - JETZT MIT ENGEREM ABSTAND
             if (!reachedSummit) {
                 setNiemande(prev => prev.map(n => {
-                    // Berechne Richtung zum Spieler
                     const dx = playerX - n.x;
                     const dy = playerY - n.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
 
                     if (distance < 0.1) return n;
 
-                    // Normalisiere die Richtung
                     const dirX = dx / distance;
                     const dirY = dy / distance;
 
-                    // Bewege Niemand in Richtung Spieler
                     let newNX = n.x + dirX * n.speed;
                     let newNY = n.y + dirY * n.speed;
 
-                    // Halte minimalen Abstand
-                    const minDistance = 25;
+                    // ENGERER MINIMALABSTAND: 15 statt 20
+                    const minDistance = 15;
                     if (distance < minDistance) {
-                        newNX = n.x - dirX * n.speed * 0.5;
-                        newNY = n.y - dirY * n.speed * 0.5;
+                        newNX = n.x - dirX * n.speed * 0.3;
+                        newNY = n.y - dirY * n.speed * 0.3;
                     }
 
-                    // Grenzen setzen
                     newNX = Math.max(5, Math.min(95, newNX));
-                    newNY = Math.max(120, Math.min(380, newNY));
+                    newNY = Math.max(SUMMIT_Y, Math.min(GROUND_LEVEL, newNY));
 
                     return {
                         ...n,
@@ -199,7 +232,7 @@ function App() {
         }, 16);
 
         return () => clearInterval(gameLoop);
-    }, [gameActive, reachedSummit, playerX, playerY, height, textIndex]);
+    }, [gameActive, reachedSummit, playerX, playerY, textIndex, steps]);
 
     const getRandomSuitColor = (): string => {
         const colors = ['#1a1a1a', '#2c2c2c', '#3d3d3d', '#000000', '#121212'];
@@ -214,7 +247,7 @@ function App() {
 
     const resetGame = (): void => {
         setPlayerX(10);
-        setPlayerY(350);
+        setPlayerY(480); // Zurück zum neuen Startpunkt
         setHeight(0);
         setNiemande([]);
         setReachedSummit(false);
@@ -231,34 +264,34 @@ function App() {
             </header>
 
             <div className="game-container">
+                {/* Große Hauptüberschrift */}
+                <h1 className="main-title">Ausflug ins Gebirge - Franz Kafka</h1>
+
                 <div className="game-area">
-                    {/* Himmel */}
                     <div className="sky">
                         <div className="cloud cloud1"></div>
                         <div className="cloud cloud2"></div>
                         <div className="sun"></div>
                     </div>
 
-                    {/* Berge */}
                     <div className="mountains">
-                        <div className="mountain-back"></div>
-                        <div className="mountain-middle"></div>
-                        <div className="mountain-front"></div>
+                        <div className="mountain-left"></div>
+                        <div className="mountain-right"></div>
+                        <div className="mountain-main">
+                            <div className="mountain-cross">✟</div>
+                        </div>
+                        <div className="mountain-foreground"></div>
                     </div>
 
-                    {/* Text-Anzeige oben in der Mitte */}
                     <div className="text-display-top">
                         <div className="text-bubble">
                             <div className="text-content">
                                 "{kafkaText[textIndex]}"
                             </div>
-                            <div className="text-step">Schritt: {steps} | Niemande: {niemande.length}</div>
                         </div>
                     </div>
 
-                    {/* Spielbereich */}
                     <div className="play-area">
-                        {/* Niemande */}
                         {!reachedSummit && niemande.map((n) => (
                             <div
                                 key={n.id}
@@ -266,15 +299,12 @@ function App() {
                                 style={{
                                     left: `${n.x}%`,
                                     top: `${n.y}px`,
-                                    opacity: reachedSummit ? 0 : 1,
-                                    transition: reachedSummit ? 'opacity 0.5s ease' : 'none'
                                 }}
                             >
                                 <NiemandSVG suitColor={n.suitColor} />
                             </div>
                         ))}
 
-                        {/* Spieler */}
                         <div
                             className="player-container"
                             style={{
@@ -282,7 +312,6 @@ function App() {
                                 top: `${playerY}px`
                             }}
                         >
-                            {/* Sprechblase */}
                             {showSpeechBubble && (
                                 <div className="speech-bubble">
                                     <div className="bubble-content">
@@ -294,42 +323,33 @@ function App() {
 
                             <div className="player-figure">
                                 <PlayerSVG />
-                                {reachedSummit && <div className="summit-crown">👑</div>}
+                                {reachedSummit}
                             </div>
                         </div>
-
-                        {/* Gipfel-Flagge */}
-                        {reachedSummit && (
-                            <div className="summit-flag" style={{ left: '50%', top: '100px' }}>
-                                🚩
-                            </div>
-                        )}
                     </div>
 
-                    {/* Gipfel-Overlay */}
+                    {/* Vereinfachte Verdunkelung */}
                     {reachedSummit && (
-                        <div className="summit-overlay">
-                            <div className="summit-message">
-                                <h2>🏔️ GIPFEL ERREICHT! 🏔️</h2>
-                                <p>Du hast {steps} Schritte gemacht </p>
-                                <p>Die Niemande sind verschwunden. Du bist allein am Gipfel.</p>
-                                <button onClick={resetGame} className="restart-btn">
-                                    Neues Spiel
-                                </button>
+                        <div className="summit-darken">
+                            <div className="summit-darken-content">
+
                             </div>
                         </div>
                     )}
                 </div>
 
-
-
-                {/* Schreien-Button */}
                 <div className="scream-section" onClick={handleScream}>
                     <div className="scream-quote">
                         <span className="quote-mark">"</span>
-                        <span className="quote-text">Ich weiß nicht, ich weiß ja nich</span>
+                        <span className="quote-text">Ich weiß nicht, ich weiß ja nicht</span>
                         <span className="quote-mark">"</span>
                         <div className="click-hint">(Klicken um zu Schreien)</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="kafka-text">
+                        ______________________________________________________________________________________
                     </div>
                 </div>
 
