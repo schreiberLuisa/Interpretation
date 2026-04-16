@@ -245,17 +245,6 @@ function App() {
         setTimeout(() => setShowSpeechBubble(false), 1500);
     };
 
-    const resetGame = (): void => {
-        setPlayerX(10);
-        setPlayerY(480); // Zurück zum neuen Startpunkt
-        setHeight(0);
-        setNiemande([]);
-        setReachedSummit(false);
-        setGameActive(true);
-        setTextIndex(0);
-        setSteps(0);
-    };
-
     return (
         <div className="App" tabIndex={0}>
             <header className="header">
