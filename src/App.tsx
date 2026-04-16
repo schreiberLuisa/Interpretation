@@ -173,7 +173,6 @@ function App() {
             newX = Math.max(5, Math.min(95, newX));
             newY = Math.max(SUMMIT_Y, Math.min(GROUND_LEVEL, newY)); // Neuer Boden
 
-            const currentHeight = GROUND_LEVEL - newY;
 
             setPlayerX(newX);
             setPlayerY(newY);
